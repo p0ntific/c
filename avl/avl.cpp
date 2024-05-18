@@ -8,7 +8,7 @@ using namespace std;
 template <class T>
 class AVLNode {
 public:
-	AVLNode<T>* parent, * left, * right;
+	AVLNode<T>* parent, *left, *right;
 	int key, height;
 	T data;
 
@@ -19,7 +19,7 @@ public:
 	}
 
 	void print() {
-		cout << key  << endl;
+		cout << key << endl;
 	}
 	AVLNode<T>* clone() {
 		if (left == nullptr && right == nullptr) return new AVLNode<T>(key, data);
@@ -77,7 +77,7 @@ public:
 	void destroy(AVLNode<T>*& p) {
 		if (p == nullptr) // дерево пусто
 			return;
-		
+
 		if (p->left != nullptr) {
 			destroy(p->left);
 			p->left = nullptr;
@@ -89,7 +89,7 @@ public:
 		p = nullptr;
 	}
 
-	AVLTree(const AVLTree<T>& x): root(x.root){}
+	AVLTree(const AVLTree<T>& x) : root(x.root) {}
 
 	AVLTree<T>& operator=(AVLTree<T>&& x)
 	{
@@ -99,8 +99,8 @@ public:
 	}
 
 	void RotateLeft(AVLNode<T>*& p);
-	void RotateRight(AVLNode<T>*& p);	
-	
+	void RotateRight(AVLNode<T>*& p);
+
 	void correctm2(AVLNode<T>*& p);
 	void correct2(AVLNode<T>*& p);
 
@@ -129,7 +129,7 @@ void AVLTree<T>::RotateRight(AVLNode<T>*& p)
 	AVLNode<T>*& oldRight = leftTree->right;
 	if (leftTree == nullptr) return;
 	prev_p->left = oldRight;
-	leftTree->right = prev_p; 
+	leftTree->right = prev_p;
 	leftTree->parent = parent;
 	if (parent == nullptr) {
 		root = leftTree;
@@ -138,11 +138,11 @@ void AVLTree<T>::RotateRight(AVLNode<T>*& p)
 		root->right = prev_p;
 		return;
 	}
-	if ( parent->left == p) {
-		parent->left = leftTree; 
+	if (parent->left == p) {
+		parent->left = leftTree;
 	}
-	else { 
-		parent->right = leftTree; 
+	else {
+		parent->right = leftTree;
 	}
 	leftTree->right->parent = leftTree;
 }
@@ -178,16 +178,14 @@ void AVLTree<T>::RotateLeft(AVLNode<T>*& p)
 template <class T>
 void AVLTree<T>::correctm2(AVLNode<T>*& p) {
 	if (p == nullptr) return;
-	AVLNode<T>* pr = p->right;
-	if (pr != nullptr && pr->defect_h()>0) RotateRight(pr);
+	if (p->right != nullptr && p->right->defect_h() == 1) RotateRight(p->right);
 	RotateLeft(p);
 }
 
 template <class T>
 void AVLTree<T>::correct2(AVLNode<T>*& p) {
 	if (p == nullptr) return;
-	AVLNode<T>* pl = p->left;
-	if (pl != nullptr && pl->defect_h() > 0) RotateLeft(pl);
+	if (p->left != nullptr && p->left->defect_h() == -1) RotateLeft(p->left);
 	RotateRight(p);
 }
 
@@ -195,11 +193,10 @@ template <class T>
 void AVLTree<T>::rebalance(AVLNode<T>*& p) {
 	AVLNode<T>* parent = p->parent;
 	int defect = p->defect_h();
-	
+
 	if (defect == 2) correct2(p);
 	else if (defect == -2) correctm2(p);
 	if (parent != nullptr) {
-		
 		rebalance(parent);
 	}
 }
@@ -223,14 +220,11 @@ void AVLTree<T>::insert(int key, T data) {
 	if (p->key < key) {
 		p->right = new_p;
 	}
-	else{
+	else {
 		p->left = new_p;
 	}
 	new_p->parent = p;
-	AVLNode<T>* parent = p->parent;
-	if (parent != nullptr) { 
-		rebalance(parent); 
-	}
+	rebalance(p);
 }
 
 
@@ -297,7 +291,7 @@ void AVLTree<T>::del(int key) {
 		del(next->key);
 		p->key = next->key;
 		p->data = next->data;
-		
+
 	}
 	rebalance(parent);
 	p = nullptr;
@@ -312,26 +306,24 @@ bool AVLTree<T>::test() {
 template <class T>
 bool AVLTree<T>::test(AVLNode<T> *p) {
 	if (p == nullptr) return true;
-	return (abs(p->defect_h()) <=1)*test(p->left)*test(p->right);
+	bool avl_property = abs(p->defect_h()) <= 1;
+	bool search_property = true;
+	if (p->left != nullptr) search_property *= (p->left->key < p->key);
+	if (p->right != nullptr) search_property *= (p->right->key > p->key);
+	return avl_property*search_property*test(p->left)*test(p->right);
 }
 
 int main()
 {
 	AVLNode<int>
-	* p1 = new AVLNode<int>(1, 10);
-	
+		* p1 = new AVLNode<int>(1, 10);
+
 	AVLTree<int> t(p1);
-	t.insert(1231,1);
-	t.insert(55,1);
-	t.insert(123,1);
-	t.insert(12,1);
-	t.insert(5253,1);
-	t.insert(11,1);
-	t.insert(58,1);
+	for (int i = 1000; i>0;i--)
+	{
+		t.insert((i*137), i);
+	}
 	t.print();
-	cout << "================" << endl;
-	t.insert(60,1);
-	t.print();
-	cout << t.test() << endl;
+	cout << (t.test() ? "good" : "bad") << endl;
 	return EXIT_SUCCESS;
 }
