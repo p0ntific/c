@@ -168,12 +168,16 @@ void f_del1(BNode*& p)
 	
 	if (p->left != nullptr && p->left->data == 1) {
 		f_del(p->left->left);
-		p->left = p->left->right;
+		BNode * tmp = p->left->right;
+		delete p->left;
+		p->left = tmp;
 		return;
 	}
 	if (p->right != nullptr && p->right->data == 1) {
 		f_del(p->right->left);
-		p->right = p->right->right;
+		BNode * tmp = p->right->right;
+		delete p->right;
+		p->right = tmp;
 		return;
 	}
 	f_del1(p->left);
