@@ -165,20 +165,11 @@ void f_del1(BNode*& p)
 {
 	if (p == nullptr ) // дерево пусто
 		return;
-	
-	if (p->left != nullptr && p->left->data == 1) {
-		f_del(p->left->left);
-		BNode * tmp = p->left->right;
-		delete p->left;
-		p->left = tmp;
-		return;
-	}
-	if (p->right != nullptr && p->right->data == 1) {
-		f_del(p->right->left);
-		BNode * tmp = p->right->right;
-		delete p->right;
-		p->right = tmp;
-		return;
+	if(p->data == 1){
+		BNode * right_tree = p->right;
+		f_del(p->left);
+		delete p;
+		p = right_tree;
 	}
 	f_del1(p->left);
 	f_del1(p->right);
