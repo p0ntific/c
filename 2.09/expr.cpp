@@ -1,19 +1,15 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
 class Expr {
 public:
-    // Виртуальный деструктор
-    virtual ~Expr() = default;
 
-    // Метод для вывода выражения
-    virtual void print() const = 0;
-
-    // Метод для вычисления значения выражения при значении переменной x
-    virtual double eval(double x) const = 0;
-
-    // Метод для нахождения производной выражения
-    virtual Expr* der() const = 0;
-
-    // Метод для копирования выражения
-    virtual Expr* clone() const = 0;
+    virtual void print() = 0;
+    virtual double eval(double x) = 0;
+    virtual Expr* der() = 0;
+    virtual Expr* clone() = 0;
 };
 
 class Const : public Expr {
@@ -21,40 +17,40 @@ private:
     double value;
 
 public:
-    explicit Const(double val) : value(val) {}
+    Const(double val) : value(val) {}
 
-    void print() const override {
-        std::cout << value;
+    void print() override {
+        cout << value;
     }
 
-    double eval(double x) const override {
+    double eval(double x) override {
         return value;
     }
 
-    Expr* der() const override {
+    Expr* der() override {
         return new Const(0);
     }
 
-    Expr* clone() const override {
+    Expr* clone() override {
         return new Const(value);
     }
 };
 
 class Var : public Expr {
 public:
-    void print() const override {
-        std::cout << "x";
+    void print() override {
+        cout << "x";
     }
 
-    double eval(double x) const override {
+    double eval(double x) override {
         return x;
     }
 
-    Expr* der() const override {
+    Expr* der() override {
         return new Const(1);
     }
 
-    Expr* clone() const override {
+    Expr* clone() override {
         return new Var();
     }
 };
@@ -69,28 +65,23 @@ private:
 public:
     Sum(Expr* l, Expr* r) : left(l), right(r) {}
 
-    ~Sum() override {
-        delete left;
-        delete right;
-    }
-
-    void print() const override {
-        std::cout << "(";
+    void print() override {
+        cout << "(";
         left->print();
-        std::cout << " + ";
+        cout << " + ";
         right->print();
-        std::cout << ")";
+        cout << ")";
     }
 
-    double eval(double x) const override {
+    double eval(double x) override {
         return left->eval(x) + right->eval(x);
     }
 
-    Expr* der() const override {
+    Expr* der() override {
         return new Sum(left->der(), right->der());
     }
 
-    Expr* clone() const override {
+    Expr* clone() override {
         return new Sum(left->clone(), right->clone());
     }
 };
@@ -103,30 +94,39 @@ private:
 public:
     Prod(Expr* l, Expr* r) : left(l), right(r) {}
 
-    ~Prod() override {
-        delete left;
-        delete right;
-    }
-
-    void print() const override {
-        std::cout << "(";
+    void print() override {
+        cout << "(";
         left->print();
-        std::cout << " * ";
+        cout << " * ";
         right->print();
-        std::cout << ")";
+        cout << ")";
     }
 
-    double eval(double x) const override {
+    double eval(double x) override {
         return left->eval(x) * right->eval(x);
     }
 
-    Expr* der() const override {
+    Expr* der() override {
         return new Sum(new Prod(left->der(), right->clone()), new Prod(left->clone(), right->der()));
     }
 
-    Expr* clone() const override {
+    Expr* clone() override {
         return new Prod(left->clone(), right->clone());
     }
+};
+class Cos : public Expr {
+private:
+    Expr* expr;
+
+public:
+    Cos(Expr* e) : expr(e) {}
+
+    void print() override ;
+    double eval(double x) override;
+
+    Expr* der() override ;
+
+    Expr* clone() override;
 };
 
 class Sin : public Expr {
@@ -134,95 +134,69 @@ private:
     Expr* expr;
 
 public:
-    explicit Sin(Expr* e) : expr(e) {}
+    Sin(Expr* e) : expr(e) {}
 
-    ~Sin() override {
-        delete expr;
-    }
-
-    void print() const override {
-        std::cout << "sin(";
+    void print() override {
+        cout << "sin(";
         expr->print();
-        std::cout << ")";
+        cout << ")";
     }
 
-    double eval(double x) const override {
-return std::sin(expr->eval(x));
+    double eval(double x) override {
+        return sin(expr->eval(x));
     }
 
-    Expr* der() const override {
+    Expr* der() override {
         return new Prod(new Cos(expr->clone()), expr->der());
     }
 
-    Expr* clone() const override {
+    Expr* clone() override {
         return new Sin(expr->clone());
     }
 };
 
-class Cos : public Expr {
-private:
-    Expr* expr;
 
-public:
-    explicit Cos(Expr* e) : expr(e) {}
 
-    ~Cos() override {
-        delete expr;
-    }
+void Cos::print() {
+    cout << "cos(";
+    expr->print();
+    cout << ")";
+}
 
-    void print() const override {
-        std::cout << "cos(";
-        expr->print();
-        std::cout << ")";
-    }
+double Cos::eval(double x) {
+    return cos(expr->eval(x));
+}
 
-    double eval(double x) const override {
-        return std::cos(expr->eval(x));
-    }
+Expr* Cos::der() {
+    return new Prod(new Const(-1), new Prod(new Sin(expr->clone()), expr->der()));
+}
 
-    Expr* der() const override {
-        return new Prod(new Const(-1), new Prod(new Sin(expr->clone()), expr->der()));
-    }
+Expr* Cos::clone() {
+    return new Cos(expr->clone());
+}
 
-    Expr* clone() const override {
-        return new Cos(expr->clone());
-    }
-};
 
 int main() {
-    // Создаем выражение для подвыражения sin(x) * cos(x)
     Expr* expr1 = new Prod(new Sin(new Var()), new Cos(new Var()));
-
-    // Выражение: (3 + x) * (2 * x + 1)
     Expr* expr2 = new Prod(new Sum(new Const(3), new Var()), new Sum(new Prod(new Const(2), new Var()), new Const(1)));
 
-    // Выводим и вычисляем значение для выражения expr1 и expr2 при x = 1
-    std::cout << "expr1: ";
+    cout << "expr1: ";
     expr1->print();
-    std::cout << " = " << expr1->eval(1) << std::endl;
+    cout << " = " << expr1->eval(1) << endl;
 
-    std::cout << "expr2: ";
+    cout << "expr2: ";
     expr2->print();
-    std::cout << " = " << expr2->eval(1) << std::endl;
-
-    // Находим производные выражений
+    cout << " = " << expr2->eval(1) << endl;
     Expr* derExpr1 = expr1->der();
     Expr* derExpr2 = expr2->der();
 
-    // Выводим производные
-    std::cout << "der(expr1): ";
+    cout << "der(expr1): ";
     derExpr1->print();
-    std::cout << std::endl;
+    cout << endl;
 
-    std::cout << "der(expr2): ";
+    cout << "der(expr2): ";
     derExpr2->print();
-    std::cout << std::endl;
-
-    // Очищаем память
-    delete expr1;
-    delete expr2;
-    delete derExpr1;
-    delete derExpr2;
+    cout << endl;
 
     return 0;
 }
