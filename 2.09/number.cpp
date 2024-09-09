@@ -1,6 +1,19 @@
+#include <iostream>
+#include <stdexcept>
+
+using namespace std;
+
+enum class Operation: char {
+    plus = '+',
+    minus = '-',
+    multiplication = '*',
+    division = '/'
+};
+
 class Expression {
 public:
     virtual double evaluate() = 0;
+    virtual ~Expression() = default;
 };
 
 class Number : public Expression {
@@ -19,11 +32,11 @@ class BinaryOperation : public Expression {
 private:
     Expression* left; 
     Expression* right; 
-    char op;          
+    Operation operation;          
 
 public:
-    BinaryOperation(Expression* l, char oper, Expression* r)
-        : left(l), op(oper), right(r) {}
+    BinaryOperation(Expression* l, Operation oper, Expression* r)
+        : left(l), operation(oper), right(r) {}
 
     ~BinaryOperation() {
         delete left;
@@ -34,14 +47,17 @@ public:
         double leftVal = left->evaluate();
         double rightVal = right->evaluate();
         
-        switch (op) {
-            case '+':
+        switch (operation) {
+            case Operation::plus:
                 return leftVal + rightVal;
-            case '-':
+            case Operation::minus:
                 return leftVal - rightVal;
-            case '*':
+            case Operation::multiplication:
                 return leftVal * rightVal;
-            case '/':
+            case Operation::division:
+                if (rightVal == 0) {
+                    throw runtime_error("деление на ноль");
+                }
                 return leftVal / rightVal;
         }
     }

@@ -1,12 +1,13 @@
 #include <iostream>
+#include <cmath>
 #include <string>
 
 using namespace std;
 
 class Expr {
 public:
-
-    virtual void print() = 0;
+    virtual ~Expr() = default;
+    virtual void print()=0;
     virtual double eval(double x) = 0;
     virtual Expr* der() = 0;
     virtual Expr* clone() = 0;
@@ -20,7 +21,12 @@ public:
     Const(double val) : value(val) {}
 
     void print() override {
-        cout << value;
+        if(value < 0){
+            cout << '(' << value << ')';
+        }
+        else{
+            cout << value;
+        }
     }
 
     double eval(double x) override {
@@ -84,6 +90,11 @@ public:
     Expr* clone() override {
         return new Sum(left->clone(), right->clone());
     }
+    ~Sum() override{
+        delete left;
+        delete right;
+    };
+
 };
 
 class Prod : public Expr {
@@ -113,7 +124,13 @@ public:
     Expr* clone() override {
         return new Prod(left->clone(), right->clone());
     }
+    ~Prod() override{
+        delete left;
+        delete right;
+    };
+
 };
+
 class Cos : public Expr {
 private:
     Expr* expr;
@@ -124,9 +141,10 @@ public:
     void print() override ;
     double eval(double x) override;
 
-    Expr* der() override ;
+    Expr* der() override;
 
     Expr* clone() override;
+    ~Cos() override;
 };
 
 class Sin : public Expr {
@@ -153,6 +171,9 @@ public:
     Expr* clone() override {
         return new Sin(expr->clone());
     }
+    ~Sin() override{
+        delete expr;
+    };
 };
 
 
@@ -161,6 +182,10 @@ void Cos::print() {
     cout << "cos(";
     expr->print();
     cout << ")";
+}
+
+Cos::~Cos() {
+    delete expr;
 }
 
 double Cos::eval(double x) {
@@ -180,23 +205,28 @@ int main() {
     Expr* expr1 = new Prod(new Sin(new Var()), new Cos(new Var()));
     Expr* expr2 = new Prod(new Sum(new Const(3), new Var()), new Sum(new Prod(new Const(2), new Var()), new Const(1)));
 
-    cout << "expr1: ";
+    cout << "выражение 1: ";
     expr1->print();
     cout << " = " << expr1->eval(1) << endl;
 
-    cout << "expr2: ";
+    cout << "выражение 2: ";
     expr2->print();
     cout << " = " << expr2->eval(1) << endl;
     Expr* derExpr1 = expr1->der();
     Expr* derExpr2 = expr2->der();
 
-    cout << "der(expr1): ";
+    cout << "производная 1: ";
     derExpr1->print();
     cout << endl;
 
-    cout << "der(expr2): ";
+    cout << "производная 2: ";
     derExpr2->print();
     cout << endl;
+
+    delete expr1;
+    delete expr2;
+    delete derExpr1;  
+    delete derExpr2;   
 
     return 0;
 }
