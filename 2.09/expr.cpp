@@ -90,10 +90,6 @@ public:
     Expr* clone() override {
         return new Sum(left->clone(), right->clone());
     }
-    ~Sum() override{
-        delete left;
-        delete right;
-    };
 
 };
 
@@ -124,10 +120,7 @@ public:
     Expr* clone() override {
         return new Prod(left->clone(), right->clone());
     }
-    ~Prod() override{
-        delete left;
-        delete right;
-    };
+ 
 
 };
 
@@ -144,7 +137,6 @@ public:
     Expr* der() override;
 
     Expr* clone() override;
-    ~Cos() override;
 };
 
 class Sin : public Expr {
@@ -171,9 +163,6 @@ public:
     Expr* clone() override {
         return new Sin(expr->clone());
     }
-    ~Sin() override{
-        delete expr;
-    };
 };
 
 
@@ -184,9 +173,6 @@ void Cos::print() {
     cout << ")";
 }
 
-Cos::~Cos() {
-    delete expr;
-}
 
 double Cos::eval(double x) {
     return cos(expr->eval(x));
@@ -225,8 +211,8 @@ int main() {
 
     delete expr1;
     delete expr2;
-    delete derExpr1;  
-    delete derExpr2;   
+    delete derExpr1;
+    delete derExpr2;
 
     return 0;
 }
